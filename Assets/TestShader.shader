@@ -39,6 +39,7 @@ Shader "Custom/TestShader"
             {
                 float4 positionHCS : SV_POSITION;
                 float3 positionWS : TEXCOORD0;   
+                float3 normalWS : TEXCOORD1;
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -52,13 +53,15 @@ Shader "Custom/TestShader"
 
                 output.positionHCS = TransformObjectToHClip(input.positionOS);
                 output.positionWS = TransformObjectToWorld(input.positionOS);
+                output.normalWS = normalize(mul(float4(input.normalOS, 0), unity_WorldToObject));
 
                 return output;
             }
 
             float4 Frag(const Varyings input) : SV_TARGET
             {
-                return _Color * clamp(input.positionWS.x,0,1);
+                float3 normalColor = (input.normalWS + float3(1, 1, 1)) * 0.5;
+                return _Color * float4(normalColor,1);
             }
 
             ENDHLSL
