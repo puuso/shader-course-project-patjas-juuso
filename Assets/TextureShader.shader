@@ -1,60 +1,56 @@
-Shader "Custom/TextureShader"
+Shader "Custom/TextureSample"
 {
-    Properties{
-        _Tex1("Texture", 2D) = "white" {}
-        _Tex2("Texture", 2D) = "white" {}
-        _Tiling("Tiling", Range(0.1, 10)) = 1
-        _Offset("Offset", Range(0, 10)) = 0
-        _Lerpp("Lerp parameter", range(0,1))=0.5
+    Properties
+    {
+        _MainTex("Main Texture", 2D) = "white" {}
+        _TaskTex("Main Texture", 2D) = "white" {}
     }
-        SubShader{
-            Tags {"Queue" = "Transparent" "RenderType" = "Opaque"}
-            LOD 100
-
-            Pass {
-                HLSLPROGRAM
-                #pragma vertex Vert
-            #pragma fragment Frag
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" "RenderPipeline" = "UniversalPipeline" "Queue" = "Geometry" }
+        
+        Pass
+        {
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
             
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/core.hlsl"
-
-
-            struct Attributes {
-                float3 positionOS : POSITION;
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            TEXTURE2D(_MainTex);
+            SAMPLER(sampler_MainTex);
+            TEXTURE2D(_TaskTex);
+            SAMPLER(sampler_TaskTex);
+            
+            CBUFFER_START(UnityPerMaterial)
+            float4 _MainTex_ST;
+            CBUFFER_END
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
                 float2 uv : TEXCOORD0;
             };
-
-            struct Varyings {
+            struct Varyings
+            {
                 float4 positionHCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
             };
-
-            CBUFFER_START(UnityPerMaterial)
-            sampler2D _Tex1;
-            sampler2D _Tex2;
-            float _Tiling;
-            float _Offset;
-            float _Lerpp;
-            CBUFFER_END
-
-            Varyings Vert(Attributes input) {
+            
+            Varyings vert (Attributes input)
+            {
                 Varyings output;
-                output.positionHCS = TransformObjectToHClip(input.positionOS);
-                output.uv = input.uv * _Tiling + _Offset;
+                output.positionHCS = TransformObjectToHClip(input.positionOS.xyz);
+                output.uv = input.uv * _MainTex_ST.xy + _MainTex_ST.zw;
                 return output;
             }
-
-            half4 Frag(Varyings input) : SV_Target {
-                float2 uv = input.uv;
-                uv.x = (uv.x + _Offset) / _Lerpp    ; // Adjust offset and interval as needed
-
-                // Check if the current row is even or odd
-                half4 texColor = floor(uv.x) % 2 == 0 ? tex2D(_Tex1, input.uv) : tex2D(_Tex2, input.uv);
-
-                return texColor;
-
+            float4 frag (Varyings input) : SV_TARGET
+            {
+                const float4 color1 = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+                const float4 color2 = SAMPLE_TEXTURE2D(_TaskTex, sampler_TaskTex, input.uv);
+                const float4 finalColor = lerp(color1, color2, (sin(input.uv.x * 10) + 1) / 2);
+                
+                return finalColor;
             }
-                ENDHLSL
-            }
+            ENDHLSL
+        }
     }
 }
