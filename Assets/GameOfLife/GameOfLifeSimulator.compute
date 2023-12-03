@@ -1,0 +1,180 @@
+#pragma kernel Update1
+#pragma kernel Update2
+#pragma kernel InitRPentomino
+#pragma kernel InitAcorn
+#pragma kernel InitGun
+#pragma kernel InitFullTexture
+
+RWTexture2D<float> State1;
+RWTexture2D<float> State2;
+float2 TextureSize;
+float4 CellColour;
+int CountLiveNeighbors(int x, int y, RWTexture2D<float> state);
+float GameOfLife(float currentState, int liveNeighbors);
+
+[numthreads(8, 8, 1)]
+void Update1(uint3 id : SV_DispatchThreadID)
+{
+    int x = id.x;
+    int y = id.y;
+    float currentState = State1[id.xy];
+    int liveNeighbors = CountLiveNeighbors(x, y, State1);
+    float nextState = GameOfLife(currentState, liveNeighbors);
+    State2[id.xy] = nextState;
+}
+
+[numthreads(8, 8, 1)]
+void Update2(uint3 id : SV_DispatchThreadID)
+{
+    int x = id.x;
+    int y = id.y;
+    float currentState = State2[id.xy];
+    int liveNeighbors = CountLiveNeighbors(x, y, State2);
+    float nextState = GameOfLife(currentState, liveNeighbors);
+    State1[id.xy] = nextState;
+}
+
+int CountLiveNeighbors(int x, int y, RWTexture2D<float> state)
+{
+    int liveNeighbors = 0;
+    for (int dx = -1; dx <= 1; ++dx)
+    {
+        for (int dy = -1; dy <= 1; ++dy)
+        {
+            if (dx == 0 && dy == 0)
+                continue;
+
+            int nx = (x + dx + TextureSize.x) % TextureSize.x;
+            int ny = (y + dy + TextureSize.y) % TextureSize.y;
+
+            liveNeighbors += state[int2(nx, ny)];
+        }
+    }
+
+    return liveNeighbors;
+}
+
+float GameOfLife(float currentState, int liveNeighbors)
+{
+    if (currentState > 0.5f)    
+        return (liveNeighbors < 2 || liveNeighbors > 3) ? 0.0f : 1.0f;
+    else
+        return (liveNeighbors == 3) ? 1.0f : 0.0f;
+}
+[numthreads(8, 8, 1)]
+void InitRPentomino(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == 256 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 255 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 256 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 257 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 256 && id.y == 257)
+        State1[id.xy] = CellColour;
+}
+#pragma kernel InitAcorn
+[numthreads(8, 8, 1)]
+void InitAcorn(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == 256 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 257 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 254 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 258 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 259 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 254 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 253 && id.y == 257)
+        State1[id.xy] = CellColour;
+}
+[numthreads(8, 8, 1)]
+void InitGun(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x == 256 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 255 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 254 && id.y == 254)
+        State1[id.xy] = CellColour;
+    if (id.x == 255 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 255 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 254 && id.y == 258)
+        State1[id.xy] = CellColour;
+    if (id.x == 253 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 252 && id.y == 259)
+        State1[id.xy] = CellColour;
+    if (id.x == 252 && id.y == 253)
+        State1[id.xy] = CellColour;
+    if (id.x == 251 && id.y == 259)
+        State1[id.xy] = CellColour;
+    if (id.x == 251 && id.y == 253)
+        State1[id.xy] = CellColour;
+    if (id.x == 250 && id.y == 258)
+        State1[id.xy] = CellColour;
+    if (id.x == 250 && id.y == 254)
+        State1[id.xy] = CellColour;
+    if (id.x == 249 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 249 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 249 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 240 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 240 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 239 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 239 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 259 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 259 && id.y == 254)
+        State1[id.xy] = CellColour;
+    if (id.x == 259 && id.y == 253)
+        State1[id.xy] = CellColour;
+    if (id.x == 260 && id.y == 255)
+        State1[id.xy] = CellColour;
+    if (id.x == 260 && id.y == 254)
+        State1[id.xy] = CellColour;
+    if (id.x == 260 && id.y == 253)
+        State1[id.xy] = CellColour;
+    if (id.x == 261 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 261 && id.y == 252)
+        State1[id.xy] = CellColour;
+    if (id.x == 263 && id.y == 257)
+        State1[id.xy] = CellColour;
+    if (id.x == 263 && id.y == 256)
+        State1[id.xy] = CellColour;
+    if (id.x == 263 && id.y == 252)
+        State1[id.xy] = CellColour;
+    if (id.x == 263 && id.y == 251)
+        State1[id.xy] = CellColour;
+    if (id.x == 273 && id.y == 254)
+        State1[id.xy] = CellColour;
+    if (id.x == 273 && id.y == 253)
+        State1[id.xy] = CellColour;
+    if (id.x == 274 && id.y == 254)
+        State1[id.xy] = CellColour;
+    if (id.x == 274 && id.y == 253)
+        State1[id.xy] = CellColour;
+
+}
+
+[numthreads(8, 8, 1)]
+void InitFullTexture(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x % 7 == 0 || id.y % 3 == 0)
+        State1[id.xy] = CellColour;
+}
